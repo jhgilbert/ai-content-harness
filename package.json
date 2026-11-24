@@ -1,0 +1,51 @@
+{
+  "name": "ai-content-harness",
+  "version": "0.1.0",
+  "description": "Zod-validated output formats that Claude fills in as JSON and that render deterministically to their final form.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "ai-content-harness": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/build-standalone.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "cli": "node src/cli.ts",
+    "versions:record": "node scripts/record-format-versions.ts",
+    "prepublishOnly": "npm test && npm run build && npm run versions:record"
+  },
+  "keywords": [
+    "zod",
+    "claude",
+    "llm",
+    "validation",
+    "structured-output"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@markdoc/markdoc": "^0.5.14",
+    "semver": "^7.8.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/semver": "^7.8.0",
+    "rolldown": "1.2.19",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}

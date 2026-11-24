@@ -1,0 +1,4 @@
+node_modules/
+# Build output, except the standalone scripts, which are committed so they can be linked to on GitHub.
+dist/*
+!dist/standalone/

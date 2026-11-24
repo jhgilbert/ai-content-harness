@@ -1,0 +1,10 @@
+{
+  "jira-card-description": {
+    "version": 1,
+    "sha256": "fc4aa7502cd2c0cfc30ac8f08e7a51f4bfec62533aaeb68ea3a70ea01e04dac0"
+  },
+  "js-package-migration-guide": {
+    "version": 1,
+    "sha256": "2a5c8be819710f008c87c8a2b487dd3b984079c0728eabd087971f3786259a51"
+  }
+}

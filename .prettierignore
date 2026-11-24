@@ -1,0 +1,2 @@
+# Snapshots must match the renderer's output exactly, so don't reformat them.
+test/format-snapshots/
