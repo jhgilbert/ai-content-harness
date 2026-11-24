@@ -27,7 +27,7 @@ Each format, such as [president-description](./src/formats/president-description
 
 When possible, a format should avoid prose in the JSON, instead templating smaller pieces of data (such as names, dates, and so on) into deterministic strings. For example, if the user's desired template contains "He was born in 1961", make sure the user intends for this sentence to always appear in the content, in which case it could be templated from just the year `1961` in the JSON for better control over the final result.
 
-Sometimes, prose is expected. For example, in a format for a Jira card description, a short run of prose in an `issueSummary` JSON entry would make sense. When prose is allowed in JSON, add a logical length limit or ask the user what the length limit should be. It would not make sense for an `issueSummary` to be 10000 characters long, for example.
+Sometimes, prose is expected. For example, in a format for a Jira card description, a short run of prose in an `issueSummary` JSON entry would make sense. Similarly, for a bulleted list, each bullet might contain freeform prose. When prose is allowed in JSON, add a logical length limit or ask the user what the length limit should be. It would not make sense for an `issueSummary` to be 10000 characters long, for example. A bullet should probably not be ten sentences long either. Err on the side of enforcing brevity.
 
 For `plaintext`, `markdown`, and `markdoc` content, it's preferred to use the Markdoc wrapper in `markdoc-wrapper.ts` for templating, rather than string concatenation or a templating language like Liquid. Plaintext should of course only use components like `paragraph`, since formatted items such as links should not appear in plaintext.
 
