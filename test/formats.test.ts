@@ -415,7 +415,7 @@ describe("linked-in-post", () => {
       mundaneEvent: "vacuumed my rug",
     });
     expect(markdown).toMatch(
-      /^Last month, I vacuumed my rug\. Because I'm an entrepreneur/,
+      /^Last month, I vacuumed my rug\. I had an epiphany/,
     );
   });
 

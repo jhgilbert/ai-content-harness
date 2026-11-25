@@ -26,7 +26,7 @@ const fragment = (label: string, maxLength: number) =>
     .regex(/^[a-z]/, `${label} must start with a lowercase letter, since it continues a sentence`)
     .regex(/[^.!?,;:]$/, `${label} must not end with punctuation, since the sentence continues after it`);
 
-export const schema = z
+export const LinkedInPostSchema = z
   .object({
     timeframe: plainText("timeframe", 30)
       .regex(/^[A-Z]/, "timeframe must start with a capital letter, since it starts the post")
@@ -39,7 +39,7 @@ export const schema = z
       "The grand realization drawn from the mundane event, like `The greatest innovators of all time stubbed their toes just like the rest of us.` It follows `I had an epiphany: `.",
     ),
     lesson: sentence("lesson", 150).describe(
-      "The takeaway for the reader, like `Don't let a stubbed toe make you feel less legendary.` It follows `The lesson that most people would miss? `.",
+      "The takeaway for the reader, like `Don't let a stubbed toe make you feel less legendary.` It follows `The lesson that most people miss? `.",
     ),
     whatDoesNotMatter: fragment("whatDoesNotMatter", 80).describe(
       "The thing people wrongly focus on, like `how many times you stub your toe`. Rendered as `It's not <whatDoesNotMatter> that matters.`",
@@ -51,6 +51,6 @@ export const schema = z
   .strict();
 
 /** What Claude writes. */
-export type LinkedInPostInput = z.input<typeof schema>;
+export type LinkedInPostInput = z.input<typeof LinkedInPostSchema>;
 /** What the renderer receives, after defaults are applied. */
-export type LinkedInPost = z.output<typeof schema>;
+export type LinkedInPost = z.output<typeof LinkedInPostSchema>;
