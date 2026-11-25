@@ -11,7 +11,7 @@ export function render(
   const version = m.code(data.version);
   const prerequisiteNodes = prerequisites(data, m);
 
-  return m.toMarkdown(
+  return m.toMarkup(
     m.document(
       m.heading(1, "Migrate to ", release),
       m.heading(2, "Overview"),

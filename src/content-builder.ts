@@ -3,7 +3,7 @@ import Markdoc, { type Node } from "@markdoc/markdoc";
 // Readable builders for content, so render functions read like the document
 // they produce. `defineFormat()` passes a builder for the format's output type:
 //
-//   m.toMarkdown(m.document(
+//   m.toMarkup(m.document(
 //     m.heading(2, "Questions"),
 //     m.bulletList(data.questions),
 //   ))
@@ -35,7 +35,7 @@ const shared = {
   code,
   link,
   inlineMarkdown,
-  toMarkdown,
+  toMarkup,
 };
 
 export type MarkdownBuilder = typeof shared & {
@@ -332,7 +332,7 @@ function* descendants(nodes: Node[]): Generator<Node> {
 
 /** Whether formatting `nodes` and parsing the result gives back the same nodes. */
 function roundTrips(nodes: Node[]): boolean {
-  const reparsed = parseInline(toMarkdown(document(paragraph(nodes))));
+  const reparsed = parseInline(toMarkup(document(paragraph(nodes))));
   return reparsed !== undefined && shape(reparsed) === shape(nodes);
 }
 
@@ -348,6 +348,6 @@ function shape(nodes: Node[]): string {
 // Output
 
 /** Writes Markdown, or Markdoc for a builder in `markdoc` mode. */
-function toMarkdown(root: Node): string {
+function toMarkup(root: Node): string {
   return Markdoc.format(root, { orderedListMode: "increment" });
 }

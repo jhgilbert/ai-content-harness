@@ -21,12 +21,12 @@ const {
   table,
   tabs,
   tag,
-  toMarkdown,
+  toMarkup,
 } = contentBuilder("markdoc");
 
 describe("markdoc mode", () => {
   it("builds blocks and inline formatting", () => {
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(
         heading(2, "Setup"),
         paragraph(
@@ -53,7 +53,7 @@ describe("markdoc mode", () => {
   });
 
   it("builds lists whose items can mix strings and inline nodes", () => {
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(
         bulletList(["plain", [strong("Note:"), " mixed"]]),
         orderedList(["first", "second"]),
@@ -65,7 +65,7 @@ describe("markdoc mode", () => {
   });
 
   it("builds fenced code blocks that round-trip through the parser", () => {
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(fence("ts", "const a = 1;\n\nconst b = 2;")),
     );
     expect(markdown).toBe("```ts\nconst a = 1;\n\nconst b = 2;\n```\n");
@@ -77,7 +77,7 @@ describe("markdoc mode", () => {
 
   it("drops falsy children and flattens arrays", () => {
     const show = false;
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(paragraph("kept"), show && paragraph("dropped"), null, [
         paragraph("flattened"),
       ]),
@@ -87,7 +87,7 @@ describe("markdoc mode", () => {
   });
 
   it("builds table tags with inline cells that round-trip through the parser", () => {
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(
         table(["Type", "Description"], [[code("string | number"), "a union"]]),
       ),
@@ -105,11 +105,11 @@ describe("markdoc mode", () => {
         "",
       ].join("\n"),
     );
-    expect(toMarkdown(Markdoc.parse(markdown))).toBe(markdown);
+    expect(toMarkup(Markdoc.parse(markdown))).toBe(markdown);
   });
 
   it("builds nested tags that round-trip through the parser", () => {
-    const markdown = toMarkdown(
+    const markdown = toMarkup(
       document(
         tabs(
           tab(
@@ -138,12 +138,12 @@ describe("markdoc mode", () => {
         "",
       ].join("\n"),
     );
-    expect(toMarkdown(Markdoc.parse(markdown))).toBe(markdown);
+    expect(toMarkup(Markdoc.parse(markdown))).toBe(markdown);
   });
 
   it("quotes tag attributes", () => {
     expect(
-      toMarkdown(
+      toMarkup(
         document(
           tag(
             "callout",
@@ -160,7 +160,7 @@ describe("markdown mode", () => {
   const m = contentBuilder("markdown");
 
   it("builds a pipe table with escaped pipes that round-trips through the parser", () => {
-    const markdown = m.toMarkdown(
+    const markdown = m.toMarkup(
       m.document(
         m.table(
           ["Type", "Description"],
@@ -192,7 +192,7 @@ describe("markdown mode", () => {
 
   it("leaves a node used in a table cell unescaped elsewhere", () => {
     const union = m.code("string | number");
-    const markdown = m.toMarkdown(
+    const markdown = m.toMarkup(
       m.document(m.table(["Type"], [[union]]), m.paragraph(union)),
     );
     expect(markdown).toContain("\n`string | number`\n");
@@ -216,7 +216,7 @@ describe("markdown mode", () => {
 describe("inline markdown", () => {
   it("renders inline code from a Markdown string", () => {
     expect(
-      toMarkdown(
+      toMarkup(
         document(bulletList([inlineMarkdown("use `z.email()` instead")])),
       ),
     ).toBe("- use `z.email()` instead\n");

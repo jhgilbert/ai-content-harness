@@ -156,13 +156,13 @@ describe("defineFormat", () => {
       ...definition,
       outputType: "markdown",
       render: (data, m) =>
-        m.toMarkdown(m.document(m.table(["Note"], [[data.text]]))),
+        m.toMarkup(m.document(m.table(["Note"], [[data.text]]))),
     });
     const markdoc = defineFormat({
       ...definition,
       outputType: "markdoc",
       render: (data, m) =>
-        m.toMarkdown(m.document(m.table(["Note"], [[data.text]]))),
+        m.toMarkup(m.document(m.table(["Note"], [[data.text]]))),
     });
     expect(markdown.jsonToString({ text: "Hi" })).toBe(
       "| Note |\n| ---- |\n| Hi   |\n",
@@ -180,7 +180,7 @@ describe("defineFormat", () => {
       outputType: "markdown",
       schema: z.object({}),
       // @ts-expect-error `tag` isn't available in markdown mode.
-      render: (_data, m) => m.toMarkdown(m.document(m.tag("note", {}))),
+      render: (_data, m) => m.toMarkup(m.document(m.tag("note", {}))),
     });
     expect(() => tagged.jsonToString({})).toThrow(
       "tag() isn't available in markdown mode",

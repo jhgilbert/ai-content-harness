@@ -31,7 +31,7 @@ export function render(data: PresidentDescription, m: MarkdocBuilder): string {
   const born = year(data.born);
   const numbers = list.format(data.numbers.map(ordinal));
 
-  return m.toMarkdown(
+  return m.toMarkup(
     m.document(
       m.heading(1, data.name),
       m.heading(2, "Overview"),

@@ -4,7 +4,7 @@ import type { JiraCardDescription } from "./schema.ts";
 export function render(data: JiraCardDescription, m: MarkdownBuilder): string {
   const { role, goal, benefit } = data.userStory;
 
-  return m.toMarkdown(
+  return m.toMarkup(
     m.document(
       m.paragraph(m.strong(data.summary)),
       m.paragraph(`As a ${role}, I want to ${goal}, so that I can ${benefit}.`),

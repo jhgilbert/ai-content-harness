@@ -2,7 +2,7 @@ import type { MarkdownBuilder } from "../../content-builder.ts";
 import type { LinkedInPost } from "./schema.ts";
 
 export function render(data: LinkedInPost, m: MarkdownBuilder): string {
-  return m.toMarkdown(
+  return m.toMarkup(
     m.document(
       m.paragraph(
         `${data.timeframe}, I ${data.mundaneEvent}. I had an epiphany: ${data.epiphany}`,
