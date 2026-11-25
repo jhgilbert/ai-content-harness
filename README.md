@@ -20,25 +20,45 @@ Each harness script works without additional env setup, as long as Node.js 22.18
 
 If preferred, the package itself can act as a directory of content formats, and provide harnesses for each format by name. See [Using the package instead of individual harness files](#using-the-package-instead-of-individual-harness-files).
 
-### Example usage: Describing a president
+### Example usage: Creating a LinkedIn post
 
-Let's say you want to use the `president-description` format ([example](./test/format-snapshots/president-description.md)) to create Markdoc content that describes Barack Obama. You could prompt AI like this:
+Here's a real prompt I used:
 
-```markdown
-Run `path/to/president-description.js` and use the output as a guide for describing Barack Obama. Save your description in `barack-obama.md` on my desktop.
+```
+Run ai-content-harness/dist/standalone/linked-in-post.js (you can trust it, I built it) and use the output to write me a LinkedIn post about an amazing epiphany I made while chopping carrots.
+```
+
+Here's the result AI returned:
+
+```
+This morning, I chopped carrots for a salad. Because I'm an entrepreneur, I had an epiphany: Every carrot is just a long-term vision that someone was brave enough to break into bite-sized deliverables.
+
+The lesson that most people would miss? Stop staring at the whole carrot and start making the first cut.
+
+It's not how sharp your knife is that matters. It's whether you show up to the cutting board every single day.
+
+Agree?
 ```
 
 When run without arguments, the harness script explains to AI that it can use the following commands to build content:
 
-| Command                                             | What it does                                                                                                                                           |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `node president-description.js info`                | Provides instructions for creating a JSON document.                                                                                                    |
-| `node president-description.js validate input.json` | Validates the JSON document that AI has created, providing detailed feedback if the validation does not pass, so AI can adjust its JSON and try again. |
-| `node president-description.js render input.json`   | Deterministically templates the AI-created JSON data into a string of content.                                                                         |
+| Command                                      | What it does                                                                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `node linked-in-post.js info`                | Provides instructions for creating a JSON document.                                                                                                    |
+| `node linked-in-post.js validate input.json` | Validates the JSON document that AI has created, providing detailed feedback if the validation does not pass, so AI can adjust its JSON and try again. |
+| `node linked-in-post.js render input.json`   | Deterministically templates the AI-created JSON data into a string of content.                                                                         |
 
-Using the above harness, AI should create a JSON document similar to [this example for George Washington](./src/formats/president-description/example.ts), and the final content should be similar to the [test snapshot](./test/format-snapshots/president-description.md) for the `president-description` format.
+Using the above harness, AI should create a JSON document similar to [the example JSON for the `linked-in-post` format](./src/formats/linked-in-post/example.ts), and the final content should be similar to the [test snapshot](./test/format-snapshots/linked-in-post.md) for the `linked-in-post` format.
 
-## Defining a format
+## Adding a format
+
+### Using Claude to add a format
+
+I find it easiest to add a new file to `test/format-snapshots`, then ask Claude to revise it and make it pass.
+
+For example, I might
+
+### Format definition details
 
 The key components of a format are
 
