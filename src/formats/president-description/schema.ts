@@ -98,7 +98,7 @@ const PersonSchema = z
   })
   .strict();
 
-export const schema = PersonSchema.superRefine((data, ctx) => {
+export const PresidentDescriptionSchema = PersonSchema.superRefine((data, ctx) => {
   checkLifespan(data, ctx);
   checkTerms(data, ctx);
   checkTimeline(data, ctx);
@@ -108,8 +108,8 @@ type President = z.output<typeof PersonSchema>;
 
 // ISO dates compare correctly as strings, so none of these checks parse them.
 // A malformed date already has its own issue, so skip comparisons that use one.
-const ISO_DATE = z.iso.date();
-const isDate = (value: string | undefined): value is string => value !== undefined && ISO_DATE.safeParse(value).success;
+const IsoDateSchema = z.iso.date();
+const isDate = (value: string | undefined): value is string => value !== undefined && IsoDateSchema.safeParse(value).success;
 
 function checkLifespan(data: President, ctx: z.RefinementCtx) {
   if (isDate(data.died) && isDate(data.born) && data.died <= data.born) {
@@ -175,6 +175,6 @@ function checkTimeline(data: President, ctx: z.RefinementCtx) {
 }
 
 /** What Claude writes. */
-export type PresidentDescriptionInput = z.input<typeof schema>;
+export type PresidentDescriptionInput = z.input<typeof PresidentDescriptionSchema>;
 /** What the renderer receives, after defaults are applied. */
-export type PresidentDescription = z.output<typeof schema>;
+export type PresidentDescription = z.output<typeof PresidentDescriptionSchema>;

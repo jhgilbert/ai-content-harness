@@ -240,7 +240,7 @@ const GuideSchema = z
   })
   .strict();
 
-export const schema = GuideSchema.superRefine((data, ctx) => {
+export const JsPackageMigrationGuideSchema = GuideSchema.superRefine((data, ctx) => {
   checkMinimumVersion(data, ctx);
   checkChangeIds(data, ctx);
 });
@@ -286,6 +286,6 @@ function checkChangeIds(data: Guide, ctx: z.RefinementCtx) {
 }
 
 /** What Claude writes. */
-export type JsPackageMigrationGuideInput = z.input<typeof schema>;
+export type JsPackageMigrationGuideInput = z.input<typeof JsPackageMigrationGuideSchema>;
 /** What the renderer receives, after defaults are applied. */
-export type JsPackageMigrationGuide = z.output<typeof schema>;
+export type JsPackageMigrationGuide = z.output<typeof JsPackageMigrationGuideSchema>;

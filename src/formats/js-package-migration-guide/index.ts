@@ -1,14 +1,14 @@
 import { defineFormat } from "../../define-format.ts";
 import { example } from "./example.ts";
 import { render } from "./render.ts";
-import { schema } from "./schema.ts";
+import { JsPackageMigrationGuideSchema } from "./schema.ts";
 
 export const jsPackageMigrationGuide = defineFormat({
   name: "js-package-migration-guide",
   version: 2,
   description: "A guide for upgrading a JavaScript package to a new version.",
   outputType: "markdown",
-  schema,
+  schema: JsPackageMigrationGuideSchema,
   example,
   render,
 });

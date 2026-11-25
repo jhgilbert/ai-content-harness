@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Custom messages matter: they are the feedback Claude reads when it retries.
-export const schema = z
+export const JiraCardDescriptionSchema = z
   .object({
     summary: z
       .string()
@@ -46,6 +46,6 @@ export const schema = z
   .strict();
 
 /** What Claude writes. */
-export type JiraCardDescriptionInput = z.input<typeof schema>;
+export type JiraCardDescriptionInput = z.input<typeof JiraCardDescriptionSchema>;
 /** What the renderer receives, after defaults are applied. */
-export type JiraCardDescription = z.output<typeof schema>;
+export type JiraCardDescription = z.output<typeof JiraCardDescriptionSchema>;

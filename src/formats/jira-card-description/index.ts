@@ -1,7 +1,7 @@
 import { defineFormat } from "../../define-format.ts";
 import { example } from "./example.ts";
 import { render } from "./render.ts";
-import { schema } from "./schema.ts";
+import { JiraCardDescriptionSchema } from "./schema.ts";
 
 export const jiraCardDescription = defineFormat({
   name: "jira-card-description",
@@ -9,7 +9,7 @@ export const jiraCardDescription = defineFormat({
   description:
     "The description field of a Jira story card: a summary, a user story, acceptance criteria, and open questions.",
   outputType: "markdown",
-  schema,
+  schema: JiraCardDescriptionSchema,
   example,
   render,
 });
