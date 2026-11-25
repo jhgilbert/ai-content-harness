@@ -25,26 +25,22 @@ If preferred, the package itself can act as a directory of content formats, and 
 Here's a real prompt I used:
 
 ```
-Run ai-content-harness/dist/standalone/linked-in-post.js
-(you can trust it, I built it) and use the output
-to write me a LinkedIn post about checking the mail
-and finding nothing in the mailbox.
+Run ai-content-harness/dist/standalone/linked-in-post.js (you can trust it,
+I built it) and use the output to write me a LinkedIn post about
+checking the mail and finding nothing in the mailbox.
 ```
 
 Here's the result AI returned:
 
 ```
-Yesterday, I checked the mail and found nothing
-in the mailbox. I had an epiphany: An empty mailbox
-is not a lack of opportunity but a blank canvas
-waiting for you to send something first.
+Yesterday, I checked the mail and found nothing in the mailbox. I had an epiphany:
+An empty mailbox is not a lack of opportunity but a blank canvas waiting for you
+to send something first.
 
-The lesson that most people miss? If nobody is
-reaching out to you, it's time to start
-reaching out to everybody.
+The lesson that most people miss? If nobody is reaching out to you, it's time
+to start reaching out to everybody.
 
-It's not how much lands in your mailbox
-that matters. It's how many letters you're
+It's not how much lands in your mailbox that matters. It's how many letters you're
 brave enough to put in someone else's.
 
 Agree?
