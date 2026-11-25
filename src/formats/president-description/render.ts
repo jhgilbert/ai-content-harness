@@ -1,4 +1,4 @@
-import { bulletList, document, heading, paragraph, table, toMarkdown } from "../../markdoc-wrapper.ts";
+import type { MarkdocBuilder } from "../../content-builder.ts";
 import type { PresidentDescription } from "./schema.ts";
 
 type Term = PresidentDescription["terms"][number];
@@ -26,30 +26,32 @@ const MONTHS = [
 
 const list = new Intl.ListFormat("en", { type: "conjunction" });
 
-export function render(data: PresidentDescription): string {
+export function render(data: PresidentDescription, m: MarkdocBuilder): string {
   const pronoun = PRONOUNS[data.pronoun];
   const born = year(data.born);
   const numbers = list.format(data.numbers.map(ordinal));
 
-  return toMarkdown(
-    document(
-      heading(1, data.name),
-      heading(2, "Overview"),
-      paragraph(`${data.name} was the ${numbers} president of the United States. ${data.summary}`),
-      paragraph(
+  return m.toMarkdown(
+    m.document(
+      m.heading(1, data.name),
+      m.heading(2, "Overview"),
+      m.paragraph(
+        `${data.name} was the ${numbers} president of the United States. ${data.summary}`,
+      ),
+      m.paragraph(
         data.died === undefined
           ? `${pronoun.subject} ${pronoun.was} born in ${born}.`
           : `${pronoun.subject} ${pronoun.was} born in ${born}, and ${pronoun.subject.toLowerCase()} died in ${year(data.died)}.`,
       ),
-      heading(2, "Terms"),
-      bulletList(data.terms.map(term)),
-      heading(2, "Known for"),
-      table(
+      m.heading(2, "Terms"),
+      m.bulletList(data.terms.map(term)),
+      m.heading(2, "Known for"),
+      m.table(
         ["Achievement", "Description"],
         data.knownFor.map((item) => [item.name, item.description]),
       ),
-      heading(2, "Timeline"),
-      table(
+      m.heading(2, "Timeline"),
+      m.table(
         ["Year", "Event"],
         data.timeline.map((entry) => [String(entry.year), entry.event]),
       ),
@@ -58,9 +60,13 @@ export function render(data: PresidentDescription): string {
 }
 
 function term({ start, end, vicePresidents }: Term): string {
-  const dates = end === undefined ? `Since ${longDate(start)}` : `${longDate(start)} to ${longDate(end)}`;
+  const dates =
+    end === undefined
+      ? `Since ${longDate(start)}`
+      : `${longDate(start)} to ${longDate(end)}`;
   if (vicePresidents.length === 0) return `${dates}, with no vice president`;
-  const title = vicePresidents.length === 1 ? "vice president" : "vice presidents";
+  const title =
+    vicePresidents.length === 1 ? "vice president" : "vice presidents";
   return `${dates}, with ${list.format(vicePresidents)} as ${title}`;
 }
 

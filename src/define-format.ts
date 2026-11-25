@@ -1,7 +1,19 @@
 import { z } from "zod";
+import {
+  contentBuilder,
+  type ContentMode,
+  type MarkdocBuilder,
+  type MarkdownBuilder,
+} from "./content-builder.ts";
 
 /** The kinds of final output a format can produce. */
-export const OUTPUT_TYPES = ["plaintext", "markdown", "html", "markdoc", "json"] as const;
+export const OUTPUT_TYPES = [
+  "plaintext",
+  "markdown",
+  "html",
+  "markdoc",
+  "json",
+] as const;
 export type OutputType = (typeof OUTPUT_TYPES)[number];
 
 interface FormatDefinitionBase<S extends z.ZodType> {
@@ -20,8 +32,14 @@ interface FormatDefinitionBase<S extends z.ZodType> {
   example?: z.input<S>;
 }
 
-/** Templates validated data into the final string. */
-type Render<S extends z.ZodType> = (data: z.output<S>) => string;
+/**
+ * Templates validated data into the final string. For `markdown` and `markdoc`
+ * output, `m` is the content builder for that mode.
+ */
+type Render<S extends z.ZodType, Builder = undefined> = (
+  data: z.output<S>,
+  m: Builder,
+) => string;
 
 /**
  * `render` is required unless `outputType` is `json`, so a format can't
@@ -35,9 +53,11 @@ export type FormatDefinition<S extends z.ZodType> = FormatDefinitionBase<S> &
         /** Omit to emit the validated document as pretty-printed JSON. */
         render?: Render<S>;
       }
+    | { outputType: "markdown"; render: Render<S, MarkdownBuilder> }
+    | { outputType: "markdoc"; render: Render<S, MarkdocBuilder> }
     | {
-        /** Final output type after rendering, e.g. `markdown`. */
-        outputType: Exclude<OutputType, "json">;
+        /** Final output type after rendering, e.g. `html`. */
+        outputType: Exclude<OutputType, "json" | ContentMode>;
         render: Render<S>;
       }
   );
@@ -60,7 +80,8 @@ export interface ValidationIssue {
 }
 
 export type ValidationResult<T> =
-  { success: true; data: T } | { success: false; issues: ValidationIssue[]; feedback: string };
+  | { success: true; data: T }
+  | { success: false; issues: ValidationIssue[]; feedback: string };
 
 export interface Format<S extends z.ZodType = z.ZodType> {
   name: string;
@@ -84,19 +105,28 @@ export class FormatValidationError extends Error {
   }
 }
 
-export function defineFormat<S extends z.ZodType>(definition: FormatDefinition<S>): Format<S> {
-  const { name, version, description, schema, outputType, example, render } = definition;
+export function defineFormat<S extends z.ZodType>(
+  definition: FormatDefinition<S>,
+): Format<S> {
+  const { name, version, description, schema, outputType, example, render } =
+    definition;
   if (!Number.isInteger(version) || version < 1) {
-    throw new Error(`Format "${name}" has version ${version}; use a whole number starting at 1`);
+    throw new Error(
+      `Format "${name}" has version ${version}; use a whole number starting at 1`,
+    );
   }
   if (outputType === undefined) {
     throw new Error(`Format "${name}" has no outputType`);
   }
   if (!OUTPUT_TYPES.includes(outputType)) {
-    throw new Error(`Format "${name}" has outputType "${outputType}"; use one of ${OUTPUT_TYPES.join(", ")}`);
+    throw new Error(
+      `Format "${name}" has outputType "${outputType}"; use one of ${OUTPUT_TYPES.join(", ")}`,
+    );
   }
   if (render === undefined && outputType !== "json") {
-    throw new Error(`Format "${name}" has outputType "${outputType}", so it needs a render function`);
+    throw new Error(
+      `Format "${name}" has outputType "${outputType}", so it needs a render function`,
+    );
   }
 
   function getInfo(): FormatInfo {
@@ -160,7 +190,13 @@ export function defineFormat<S extends z.ZodType>(definition: FormatDefinition<S
     if (!result.success) {
       throw new FormatValidationError(name, result.issues, result.feedback);
     }
-    return render ? render(result.data) : JSON.stringify(result.data, null, 2);
+    if (!render) return JSON.stringify(result.data, null, 2);
+    const m =
+      outputType === "markdown" || outputType === "markdoc"
+        ? contentBuilder(outputType)
+        : undefined;
+    // The definition's union already ties `render` to the builder for its outputType.
+    return (render as Render<S, typeof m>)(result.data, m);
   }
 
   return {
@@ -194,18 +230,23 @@ function defaultMessage(issue: z.core.$ZodRawIssue): string | undefined {
     case "invalid_type": {
       const noun = TYPE_NOUNS[issue.expected];
       if (!noun) return undefined;
-      return issue.input === undefined ? `${label} is required and must be ${noun}` : `${label} must be ${noun}`;
+      return issue.input === undefined
+        ? `${label} is required and must be ${noun}`
+        : `${label} must be ${noun}`;
     }
     case "too_small":
     case "too_big": {
       const bound = issue.code === "too_small" ? "at least" : "at most";
-      const limit = Number(issue.code === "too_small" ? issue.minimum : issue.maximum);
+      const limit = Number(
+        issue.code === "too_small" ? issue.minimum : issue.maximum,
+      );
       if (issue.origin === "string") {
         return issue.code === "too_small" && limit === 1
           ? `${label} must not be empty`
           : `${label} must be ${bound} ${limit} characters`;
       }
-      if (issue.origin === "array") return `${label} must have ${bound} ${limit} ${limit === 1 ? "item" : "items"}`;
+      if (issue.origin === "array")
+        return `${label} must have ${bound} ${limit} ${limit === 1 ? "item" : "items"}`;
       return `${label} must be ${bound} ${limit}`;
     }
     case "invalid_value":

@@ -1,25 +1,18 @@
-import {
-  bulletList,
-  document,
-  heading,
-  paragraph,
-  strong,
-  toMarkdown,
-} from "../../markdoc-wrapper.ts";
+import type { MarkdownBuilder } from "../../content-builder.ts";
 import type { JiraCardDescription } from "./schema.ts";
 
-export function render(data: JiraCardDescription): string {
+export function render(data: JiraCardDescription, m: MarkdownBuilder): string {
   const { role, goal, benefit } = data.userStory;
 
-  return toMarkdown(
-    document(
-      paragraph(strong(data.summary)),
-      paragraph(`As a ${role}, I want to ${goal}, so that I can ${benefit}.`),
-      heading(3, "Acceptance criteria"),
-      bulletList(data.acceptanceCriteria),
+  return m.toMarkdown(
+    m.document(
+      m.paragraph(m.strong(data.summary)),
+      m.paragraph(`As a ${role}, I want to ${goal}, so that I can ${benefit}.`),
+      m.heading(3, "Acceptance criteria"),
+      m.bulletList(data.acceptanceCriteria),
       data.openQuestions.length > 0 && [
-        heading(3, "Open questions"),
-        bulletList(data.openQuestions),
+        m.heading(3, "Open questions"),
+        m.bulletList(data.openQuestions),
       ],
     ),
   );

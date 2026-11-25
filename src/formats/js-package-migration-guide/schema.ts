@@ -1,6 +1,6 @@
 import semver from "semver";
 import { z } from "zod";
-import { inlineMarkdownProblems } from "../../markdoc-wrapper.ts";
+import { inlineMarkdownProblems } from "../../content-builder.ts";
 
 // The official pattern from https://semver.org, without the leading `v`.
 const SEMVER =

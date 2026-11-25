@@ -7,7 +7,7 @@ export const presidentDescription = defineFormat({
   name: "president-description",
   version: 1,
   description: "A profile of a president of the United States: terms, achievements, and a timeline of their life.",
-  outputType: "markdown",
+  outputType: "markdoc",
   schema: PresidentDescriptionSchema,
   example,
   render,

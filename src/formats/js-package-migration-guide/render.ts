@@ -1,51 +1,48 @@
-import {
-  code,
-  document,
-  fence,
-  heading,
-  inlineMarkdown,
-  link,
-  paragraph,
-  table,
-  toMarkdown,
-} from "../../markdoc-wrapper.ts";
+import type { MarkdocBuilder } from "../../content-builder.ts";
 import type { JsPackageMigrationGuide } from "./schema.ts";
 
 type CodeExample = JsPackageMigrationGuide["codeExamples"][number];
 
-export function render(data: JsPackageMigrationGuide): string {
-  const release = code(`${data.packageName}@${data.version}`);
-  const version = code(data.version);
-  const prerequisiteNodes = prerequisites(data);
+export function render(
+  data: JsPackageMigrationGuide,
+  m: MarkdocBuilder,
+): string {
+  const release = m.code(`${data.packageName}@${data.version}`);
+  const version = m.code(data.version);
+  const prerequisiteNodes = prerequisites(data, m);
 
-  return toMarkdown(
-    document(
-      heading(1, "Migrate to ", release),
-      heading(2, "Overview"),
-      paragraph("This guide contains instructions for upgrading to ", release, "."),
-      heading(2, "What's new in ", version),
-      changeTable("Feature", data.whatsNew),
+  return m.toMarkdown(
+    m.document(
+      m.heading(1, "Migrate to ", release),
+      m.heading(2, "Overview"),
+      m.paragraph(
+        "This guide contains instructions for upgrading to ",
+        release,
+        ".",
+      ),
+      m.heading(2, "What's new in ", version),
+      changeTable(m, "Feature", data.whatsNew),
       data.breakingChanges.length > 0 && [
-        heading(2, "Breaking changes in ", version),
-        changeTable("Change", data.breakingChanges),
+        m.heading(2, "Breaking changes in ", version),
+        changeTable(m, "Change", data.breakingChanges),
       ],
       (prerequisiteNodes || data.codeExamples.length > 0) && [
-        heading(2, "Upgrade instructions"),
+        m.heading(2, "Upgrade instructions"),
         prerequisiteNodes,
-        data.codeExamples.map(codeExample),
+        data.codeExamples.map((example) => codeExample(example, m)),
       ],
     ),
   );
 }
 
-function prerequisites(data: JsPackageMigrationGuide) {
+function prerequisites(data: JsPackageMigrationGuide, m: MarkdocBuilder) {
   const minimum = data.prerequisites.minimumVersion;
   if (!minimum) return undefined;
 
-  const release = code(`${data.packageName}@${minimum.version}`);
+  const release = m.code(`${data.packageName}@${minimum.version}`);
   return [
-    heading(3, "Prerequisites"),
-    paragraph(
+    m.heading(3, "Prerequisites"),
+    m.paragraph(
       "You must be on ",
       release,
       " or newer.",
@@ -53,43 +50,55 @@ function prerequisites(data: JsPackageMigrationGuide) {
         " To upgrade to ",
         release,
         " first, see the ",
-        link(minimum.guideUrl, "migration guide for ", release),
+        m.link(minimum.guideUrl, "migration guide for ", release),
         ".",
       ],
     ),
   ];
 }
 
-function codeExample(example: CodeExample) {
+function codeExample(example: CodeExample, m: MarkdocBuilder) {
   const snippet =
     example.after === undefined
       ? example.before
       : `// Before\n${example.before}\n\n// After\n${example.after}`;
   return [
-    heading(3, ...exampleHeading(example)),
-    paragraph(inlineMarkdown(example.reason)),
-    fence(example.language, snippet),
+    m.heading(3, ...exampleHeading(example, m)),
+    m.paragraph(m.inlineMarkdown(example.reason)),
+    m.fence(example.language, snippet),
   ];
 }
 
-function exampleHeading(example: CodeExample) {
+function exampleHeading(example: CodeExample, m: MarkdocBuilder) {
   switch (example.action) {
     case "replace":
-      return ["Replace ", code(example.from), " with ", code(example.to)];
+      return ["Replace ", m.code(example.from), " with ", m.code(example.to)];
     case "rename":
-      return ["Rename ", code(example.from), " to ", code(example.to)];
+      return ["Rename ", m.code(example.from), " to ", m.code(example.to)];
     case "move":
-      return ["Import ", code(example.api), " from ", code(example.toModule)];
+      return [
+        "Import ",
+        m.code(example.api),
+        " from ",
+        m.code(example.toModule),
+      ];
     case "remove":
-      return ["Remove ", code(example.api)];
+      return ["Remove ", m.code(example.api)];
     case "update":
-      return ["Update uses of ", code(example.api)];
+      return ["Update uses of ", m.code(example.api)];
   }
 }
 
-function changeTable(nameHeader: string, changes: JsPackageMigrationGuide["whatsNew"]) {
-  return table(
+function changeTable(
+  m: MarkdocBuilder,
+  nameHeader: string,
+  changes: JsPackageMigrationGuide["whatsNew"],
+) {
+  return m.table(
     [nameHeader, "Description"],
-    changes.map((change) => [inlineMarkdown(change.name), inlineMarkdown(change.description)]),
+    changes.map((change) => [
+      m.inlineMarkdown(change.name),
+      m.inlineMarkdown(change.description),
+    ]),
   );
 }

@@ -7,7 +7,7 @@ export const jsPackageMigrationGuide = defineFormat({
   name: "js-package-migration-guide",
   version: 2,
   description: "A guide for upgrading a JavaScript package to a new version.",
-  outputType: "markdown",
+  outputType: "markdoc",
   schema: JsPackageMigrationGuideSchema,
   example,
   render,

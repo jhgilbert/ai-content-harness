@@ -29,7 +29,9 @@ When possible, a format should avoid prose in the JSON, instead templating small
 
 Sometimes, prose is expected. For example, in a format for a Jira card description, a short run of prose in an `issueSummary` JSON entry would make sense. Similarly, for a bulleted list, each bullet might contain freeform prose. When prose is allowed in JSON, add a logical length limit or ask the user what the length limit should be. It would not make sense for an `issueSummary` to be 10000 characters long, for example. A bullet should probably not be ten sentences long either. Err on the side of enforcing brevity.
 
-For `plaintext`, `markdown`, and `markdoc` content, it's preferred to use the Markdoc wrapper in `markdoc-wrapper.ts` for templating, rather than string concatenation or a templating language like Liquid. Plaintext should of course only use components like `paragraph`, since formatted items such as links should not appear in plaintext.
+For `plaintext`, `markdown`, and `markdoc` content, it's preferred to use the content builder in `content-builder.ts` for templating, rather than string concatenation or a templating language like Liquid. Plaintext should of course only use components like `paragraph`, since formatted items such as links should not appear in plaintext.
+
+For `markdown` and `markdoc` output, `render(data, m)` receives the builder for that mode as `m`, so write `m.paragraph(...)`, `m.table(...)`, and so on. In `markdown` mode, `m.table` makes a pipe table, and Markdoc-only builders like `m.tag` are type errors and throw. If a format needs tags, such as `{% table %}`, its `outputType` should be `markdoc`.
 
 ## Adding or changing a format
 

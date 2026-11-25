@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { inlineMarkdownProblems } from "../../markdoc-wrapper.ts";
+import { inlineMarkdownProblems } from "../../content-builder.ts";
 
 /** One line of plain text, with no Markdown formatting. */
 const plainText = (label: string, maxLength: number) =>
