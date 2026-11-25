@@ -5,10 +5,12 @@ import {
   getFormat,
   jiraCardDescription,
   jsPackageMigrationGuide,
+  linkedInPost,
   presidentDescription,
 } from "../src/formats/index.ts";
 import { example } from "../src/formats/jira-card-description/example.ts";
 import { example as migrationExample } from "../src/formats/js-package-migration-guide/example.ts";
+import { example as linkedInExample } from "../src/formats/linked-in-post/example.ts";
 import { example as presidentExample } from "../src/formats/president-description/example.ts";
 
 const SNAPSHOT_EXTENSIONS: Record<OutputType, string> = {
@@ -399,5 +401,85 @@ describe("president-description", () => {
       success: false,
       issues: [{ path: "terms[0].end", message: expect.stringMatching(/except on the last term/) }],
     });
+  });
+});
+
+describe("linked-in-post", () => {
+  const validate = (fields: object) =>
+    linkedInPost.validateJson({ ...linkedInExample, ...fields });
+
+  it("renders each field into its sentence", () => {
+    const markdown = linkedInPost.jsonToString({
+      ...linkedInExample,
+      timeframe: "Last month",
+      mundaneEvent: "vacuumed my rug",
+    });
+    expect(markdown).toMatch(
+      /^Last month, I vacuumed my rug\. Because I'm an entrepreneur/,
+    );
+  });
+
+  it.each([
+    [
+      "a lowercase timeframe",
+      { timeframe: "yesterday" },
+      "timeframe",
+      /capital letter/,
+    ],
+    [
+      "a timeframe with a comma",
+      { timeframe: "Yesterday," },
+      "timeframe",
+      /comma is added for you/,
+    ],
+    [
+      "a capitalized mundaneEvent",
+      { mundaneEvent: "Stubbed my toe" },
+      "mundaneEvent",
+      /lowercase letter/,
+    ],
+    [
+      "a mundaneEvent with a period",
+      { mundaneEvent: "stubbed my toe." },
+      "mundaneEvent",
+      /must not end with punctuation/,
+    ],
+    [
+      "an epiphany with no period",
+      { epiphany: "Toes are universal" },
+      "epiphany",
+      /end with a period/,
+    ],
+    [
+      "a lesson of two sentences",
+      { lesson: "Keep going. Never stop." },
+      "lesson",
+      /exactly 1 sentence/,
+    ],
+    [
+      "a lesson that is too long",
+      { lesson: `${"a".repeat(150)}.` },
+      "lesson",
+      /at most 150 characters/,
+    ],
+    [
+      "formatting in whatDoesMatter",
+      { whatDoesMatter: "what you do **next**" },
+      "whatDoesMatter",
+      /strong formatting/,
+    ],
+    [
+      "a whatDoesNotMatter that is too long",
+      { whatDoesNotMatter: "a".repeat(81) },
+      "whatDoesNotMatter",
+      /at most 80/,
+    ],
+  ])("rejects %s", (_label, fields, path, message) => {
+    const result = validate(fields);
+    expect(result).toMatchObject({
+      success: false,
+      issues: expect.arrayContaining([expect.objectContaining({ path })]),
+    });
+    expect(result.success === false && result.feedback).toMatch(message);
   });
 });

@@ -20,6 +20,7 @@ import { standaloneUsage } from "../src/standalone.ts";
 const BUNDLED_PACKAGES: Record<string, string[]> = {
   "jira-card-description": ["zod", "@markdoc/markdoc"],
   "js-package-migration-guide": ["zod", "@markdoc/markdoc", "semver"],
+  "linked-in-post": ["zod", "@markdoc/markdoc"],
   "president-description": ["zod", "@markdoc/markdoc"],
 };
 
