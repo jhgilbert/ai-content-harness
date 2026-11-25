@@ -1,7 +1,10 @@
-import type { MarkdownBuilder } from "../../content-builder.ts";
+import type { ContentBuilder } from "../../content-builder.ts";
 import type { JiraCardDescription } from "./schema.ts";
 
-export function render(data: JiraCardDescription, m: MarkdownBuilder): string {
+export function render(
+  data: JiraCardDescription,
+  m: ContentBuilder<"markdown">,
+): string {
   const { role, goal, benefit } = data.userStory;
 
   return m.toMarkup(

@@ -213,6 +213,60 @@ describe("markdown mode", () => {
   );
 });
 
+describe("html mode", () => {
+  const tags = {
+    note: {
+      render: "aside",
+      attributes: { tone: { type: String, required: true } },
+    },
+  };
+  const m = contentBuilder("html", tags);
+
+  it("renders built-in nodes as escaped HTML, without an article wrapper", () => {
+    const html = m.toMarkup(
+      m.document(
+        m.heading(2, "Fish & <chips>"),
+        m.paragraph(m.link('https://x.test?a=1&b="2"', "link")),
+        m.table(["A"], [["1"]]),
+      ),
+    );
+    expect(html).toBe(
+      "<h2>Fish &amp; &lt;chips&gt;</h2>" +
+        '<p><a href="https://x.test?a=1&amp;b=&quot;2&quot;">link</a></p>' +
+        "<table><thead><tr><th>A</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table>",
+    );
+  });
+
+  it("renders a declared tag with its schema", () => {
+    expect(
+      m.toMarkup(
+        m.document(m.tag("note", { tone: "warm" }, m.paragraph("Hi"))),
+      ),
+    ).toBe('<aside tone="warm"><p>Hi</p></aside>');
+  });
+
+  it("rejects a tag that isn't declared", () => {
+    // @ts-expect-error `m.tag` only takes declared tags.
+    const callout = m.tag("callout", {});
+    expect(() => m.toMarkup(m.document(callout))).toThrow(
+      "Can't render HTML: Undefined tag: 'callout'",
+    );
+  });
+
+  it("rejects a declared tag with invalid attributes", () => {
+    expect(() =>
+      m.toMarkup(m.document(m.tag("note", {}, m.paragraph("Hi")))),
+    ).toThrow(/Can't render HTML: .*tone/);
+  });
+
+  it.each(["tabs", "tab"] as const)("throws on %s", (name) => {
+    // @ts-expect-error tabs and tab need declared tags in html mode.
+    expect(() => m[name]("x")).toThrow(
+      `${name}() isn't available in html mode`,
+    );
+  });
+});
+
 describe("inline markdown", () => {
   it("renders inline code from a Markdown string", () => {
     expect(

@@ -1,4 +1,4 @@
-import Markdoc, { type Node } from "@markdoc/markdoc";
+import Markdoc, { type Node, type Schema } from "@markdoc/markdoc";
 
 // Readable builders for content, so render functions read like the document
 // they produce. `defineFormat()` passes a builder for the format's output type:
@@ -10,17 +10,21 @@ import Markdoc, { type Node } from "@markdoc/markdoc";
 //
 // Builders make Markdoc AST nodes, since Markdoc's formatter writes Markdown
 // too. In `markdown` mode, Markdoc-only builders like `tag` throw, and `table`
-// makes a pipe table instead of a `{% table %}` tag.
+// makes a pipe table instead of a `{% table %}` tag. In `html` mode, Markdoc
+// renders the nodes as HTML, and `tag` takes only the tags the format declares.
 //
 // Strings become text nodes. `false`, `null`, and `undefined` are dropped and
 // arrays are flattened, so `cond && [heading(...), bulletList(...)]` works.
 
 export type Child = Node | string | false | null | undefined | Child[];
 
-export type ContentMode = "markdown" | "markdoc";
-
 /** A builder that doesn't exist in this mode. It's a type error to call it, and it throws at runtime. */
 type Unavailable = (...args: never) => never;
+
+export type ContentMode = keyof Builders;
+
+/** How each custom tag renders in `html` mode, keyed by tag name. See Markdoc's tag schemas. */
+export type HtmlTags = Record<string, Schema>;
 
 const shared = {
   document,
@@ -35,64 +39,101 @@ const shared = {
   code,
   link,
   inlineMarkdown,
-  toMarkup,
 };
 
-export type MarkdownBuilder = typeof shared & {
-  table: typeof pipeTable;
-  tag: Unavailable;
-  tabs: Unavailable;
-  tab: Unavailable;
-};
-
-export type MarkdocBuilder = typeof shared & {
-  table: typeof tagTable;
-  tag: typeof tag;
-  tabs: typeof tabs;
-  tab: typeof tab;
-};
-
-const markdownBuilder: MarkdownBuilder = {
-  ...shared,
-  table: pipeTable,
-  tag: unavailable("tag"),
-  tabs: unavailable("tabs"),
-  tab: unavailable("tab"),
-};
-
-const markdocBuilder: MarkdocBuilder = {
-  ...shared,
-  table: tagTable,
-  tag,
-  tabs,
-  tab,
-};
-
-export function contentBuilder(mode: "markdown"): MarkdownBuilder;
-export function contentBuilder(mode: "markdoc"): MarkdocBuilder;
-export function contentBuilder(
-  mode: ContentMode,
-): MarkdownBuilder | MarkdocBuilder;
-export function contentBuilder(
-  mode: ContentMode,
-): MarkdownBuilder | MarkdocBuilder {
-  switch (mode) {
-    case "markdown":
-      return markdownBuilder;
-    case "markdoc":
-      return markdocBuilder;
-    default:
-      throw new Error(
-        `No content builder for mode "${mode}"; use markdown or markdoc`,
-      );
-  }
+/** The builder for each mode. Add a mode here to give it a builder. */
+interface Builders<Tags extends HtmlTags = HtmlTags> {
+  markdown: typeof shared & {
+    table: typeof pipeTable;
+    tag: Unavailable;
+    tabs: Unavailable;
+    tab: Unavailable;
+    /** Writes Markdown. */
+    toMarkup: typeof format;
+  };
+  markdoc: typeof shared & {
+    table: typeof tagTable;
+    tag: typeof tag;
+    tabs: typeof tabs;
+    tab: typeof tab;
+    /** Writes Markdoc. */
+    toMarkup: typeof format;
+  };
+  html: typeof shared & {
+    table: typeof tagTable;
+    /** A tag from the format's `tags`, which say how it renders. */
+    tag: (
+      name: Extract<keyof Tags, string>,
+      attributes: Record<string, unknown>,
+      ...children: Child[]
+    ) => Node;
+    tabs: Unavailable;
+    tab: Unavailable;
+    /** Writes HTML. Throws if a tag isn't declared in `tags` or its attributes are invalid. */
+    toMarkup: (root: Node) => string;
+  };
 }
 
-function unavailable(name: string): Unavailable {
-  return () => {
+/**
+ * The builder `render` receives as `m`, e.g. `ContentBuilder<"markdoc">`. For
+ * `html`, `Tags` is the format's `tags`: `ContentBuilder<"html", typeof tags>`.
+ */
+export type ContentBuilder<
+  Mode extends ContentMode = ContentMode,
+  Tags extends HtmlTags = {},
+> = Builders<Tags>[Mode];
+
+function builders<Tags extends HtmlTags>(tags: Tags): Builders<Tags> {
+  return {
+    markdown: {
+      ...shared,
+      table: pipeTable,
+      tag: unavailable("tag", MARKDOWN_HAS_NO_TAGS),
+      tabs: unavailable("tabs", MARKDOWN_HAS_NO_TAGS),
+      tab: unavailable("tab", MARKDOWN_HAS_NO_TAGS),
+      toMarkup: format,
+    },
+    markdoc: {
+      ...shared,
+      table: tagTable,
+      tag,
+      tabs,
+      tab,
+      toMarkup: format,
+    },
+    html: {
+      ...shared,
+      table: tagTable,
+      tag,
+      tabs: unavailable("tabs", DECLARE_HTML_TAGS),
+      tab: unavailable("tab", DECLARE_HTML_TAGS),
+      toMarkup: (root) => toHtml(root, tags),
+    },
+  };
+}
+
+/** `tags` says how each custom tag renders in `html` mode. Other modes ignore it. */
+export function contentBuilder<
+  Mode extends ContentMode,
+  Tags extends HtmlTags = {},
+>(mode: Mode, tags: Tags = {} as Tags): ContentBuilder<Mode, Tags> {
+  const all = builders(tags);
+  if (!Object.hasOwn(all, mode)) {
     throw new Error(
-      `${name}() isn't available in markdown mode, because Markdown has no tags. Use outputType "markdoc".`,
+      `No content builder for mode "${mode}"; use ${Object.keys(all).join(", ")}`,
     );
+  }
+  return all[mode];
+}
+
+const MARKDOWN_HAS_NO_TAGS =
+  'isn\'t available in markdown mode, because Markdown has no tags. Use outputType "markdoc".';
+const DECLARE_HTML_TAGS =
+  "isn't available in html mode. Declare the tag in the format's `tags` and use tag().";
+
+function unavailable(name: string, reason: string): Unavailable {
+  return () => {
+    throw new Error(`${name}() ${reason}`);
   };
 }
 
@@ -332,7 +373,7 @@ function* descendants(nodes: Node[]): Generator<Node> {
 
 /** Whether formatting `nodes` and parsing the result gives back the same nodes. */
 function roundTrips(nodes: Node[]): boolean {
-  const reparsed = parseInline(toMarkup(document(paragraph(nodes))));
+  const reparsed = parseInline(format(document(paragraph(nodes))));
   return reparsed !== undefined && shape(reparsed) === shape(nodes);
 }
 
@@ -347,7 +388,21 @@ function shape(nodes: Node[]): string {
 
 // Output
 
-/** Writes Markdown, or Markdoc for a builder in `markdoc` mode. */
-function toMarkup(root: Node): string {
+function format(root: Node): string {
   return Markdoc.format(root, { orderedListMode: "increment" });
+}
+
+/** Renders `root` as HTML, without the `<article>` Markdoc wraps a document in. */
+function toHtml(root: Node, tags: HtmlTags): string {
+  const config = { tags };
+  const errors = Markdoc.validate(root, config).filter(
+    ({ error }) => error.level === "error" || error.level === "critical",
+  );
+  if (errors.length > 0) {
+    const messages = errors.map(({ error }) => error.message).join("; ");
+    throw new Error(`Can't render HTML: ${messages}`);
+  }
+  const tree = Markdoc.transform(root, config);
+  const isArticle = tree instanceof Markdoc.Tag && tree.name === "article";
+  return Markdoc.renderers.html(isArticle ? tree.children : tree);
 }

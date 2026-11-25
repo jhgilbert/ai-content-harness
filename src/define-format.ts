@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
   contentBuilder,
+  type ContentBuilder,
   type ContentMode,
-  type MarkdocBuilder,
-  type MarkdownBuilder,
+  type HtmlTags,
 } from "./content-builder.ts";
 
 /** The kinds of final output a format can produce. */
@@ -33,8 +33,8 @@ interface FormatDefinitionBase<S extends z.ZodType> {
 }
 
 /**
- * Templates validated data into the final string. For `markdown` and `markdoc`
- * output, `m` is the content builder for that mode.
+ * Templates validated data into the final string. For `markdown`, `markdoc`,
+ * and `html` output, `m` is the content builder for that mode.
  */
 type Render<S extends z.ZodType, Builder = undefined> = (
   data: z.output<S>,
@@ -45,7 +45,10 @@ type Render<S extends z.ZodType, Builder = undefined> = (
  * `render` is required unless `outputType` is `json`, so a format can't
  * accidentally emit JSON when it's meant to produce a string like Markdown.
  */
-export type FormatDefinition<S extends z.ZodType> = FormatDefinitionBase<S> &
+export type FormatDefinition<
+  S extends z.ZodType,
+  Tags extends HtmlTags = {},
+> = FormatDefinitionBase<S> &
   (
     | {
         /** The final output is JSON. */
@@ -53,10 +56,19 @@ export type FormatDefinition<S extends z.ZodType> = FormatDefinitionBase<S> &
         /** Omit to emit the validated document as pretty-printed JSON. */
         render?: Render<S>;
       }
-    | { outputType: "markdown"; render: Render<S, MarkdownBuilder> }
-    | { outputType: "markdoc"; render: Render<S, MarkdocBuilder> }
+    | { outputType: "markdown"; render: Render<S, ContentBuilder<"markdown">> }
+    | { outputType: "markdoc"; render: Render<S, ContentBuilder<"markdoc">> }
     | {
-        /** Final output type after rendering, e.g. `html`. */
+        outputType: "html";
+        /**
+         * How each custom tag renders, keyed by tag name, as Markdoc tag
+         * schemas. `m.tag` only takes these names. Omit if there are none.
+         */
+        tags?: Tags;
+        render: Render<S, ContentBuilder<"html", Tags>>;
+      }
+    | {
+        /** Final output type after rendering, e.g. `plaintext`. */
         outputType: Exclude<OutputType, "json" | ContentMode>;
         render: Render<S>;
       }
@@ -105,8 +117,8 @@ export class FormatValidationError extends Error {
   }
 }
 
-export function defineFormat<S extends z.ZodType>(
-  definition: FormatDefinition<S>,
+export function defineFormat<S extends z.ZodType, Tags extends HtmlTags = {}>(
+  definition: FormatDefinition<S, Tags>,
 ): Format<S> {
   const { name, version, description, schema, outputType, example, render } =
     definition;
@@ -191,9 +203,12 @@ export function defineFormat<S extends z.ZodType>(
       throw new FormatValidationError(name, result.issues, result.feedback);
     }
     if (!render) return JSON.stringify(result.data, null, 2);
+    const tags = "tags" in definition ? definition.tags : undefined;
     const m =
-      outputType === "markdown" || outputType === "markdoc"
-        ? contentBuilder(outputType)
+      outputType === "markdown" ||
+      outputType === "markdoc" ||
+      outputType === "html"
+        ? contentBuilder(outputType, tags)
         : undefined;
     // The definition's union already ties `render` to the builder for its outputType.
     return (render as Render<S, typeof m>)(result.data, m);

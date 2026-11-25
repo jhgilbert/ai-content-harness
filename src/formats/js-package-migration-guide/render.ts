@@ -1,11 +1,11 @@
-import type { MarkdocBuilder } from "../../content-builder.ts";
+import type { ContentBuilder } from "../../content-builder.ts";
 import type { JsPackageMigrationGuide } from "./schema.ts";
 
 type CodeExample = JsPackageMigrationGuide["codeExamples"][number];
 
 export function render(
   data: JsPackageMigrationGuide,
-  m: MarkdocBuilder,
+  m: ContentBuilder<"markdoc">,
 ): string {
   const release = m.code(`${data.packageName}@${data.version}`);
   const version = m.code(data.version);
@@ -35,7 +35,10 @@ export function render(
   );
 }
 
-function prerequisites(data: JsPackageMigrationGuide, m: MarkdocBuilder) {
+function prerequisites(
+  data: JsPackageMigrationGuide,
+  m: ContentBuilder<"markdoc">,
+) {
   const minimum = data.prerequisites.minimumVersion;
   if (!minimum) return undefined;
 
@@ -57,7 +60,7 @@ function prerequisites(data: JsPackageMigrationGuide, m: MarkdocBuilder) {
   ];
 }
 
-function codeExample(example: CodeExample, m: MarkdocBuilder) {
+function codeExample(example: CodeExample, m: ContentBuilder<"markdoc">) {
   const snippet =
     example.after === undefined
       ? example.before
@@ -69,7 +72,7 @@ function codeExample(example: CodeExample, m: MarkdocBuilder) {
   ];
 }
 
-function exampleHeading(example: CodeExample, m: MarkdocBuilder) {
+function exampleHeading(example: CodeExample, m: ContentBuilder<"markdoc">) {
   switch (example.action) {
     case "replace":
       return ["Replace ", m.code(example.from), " with ", m.code(example.to)];
@@ -90,7 +93,7 @@ function exampleHeading(example: CodeExample, m: MarkdocBuilder) {
 }
 
 function changeTable(
-  m: MarkdocBuilder,
+  m: ContentBuilder<"markdoc">,
   nameHeader: string,
   changes: JsPackageMigrationGuide["whatsNew"],
 ) {

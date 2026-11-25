@@ -187,6 +187,35 @@ describe("defineFormat", () => {
     );
   });
 
+  it("passes the format's tags to an html builder", () => {
+    const note = defineFormat({
+      name: "note",
+      version: 1,
+      description: "",
+      outputType: "html",
+      schema: z.object({ text: z.string() }),
+      tags: { note: { render: "aside" } },
+      render: (data, m) =>
+        m.toMarkup(m.document(m.tag("note", {}, m.paragraph(data.text)))),
+    });
+    expect(note.jsonToString({ text: "Hi" })).toBe("<aside><p>Hi</p></aside>");
+  });
+
+  it("only lets an html render use declared tags", () => {
+    const untagged = defineFormat({
+      name: "untagged",
+      version: 1,
+      description: "",
+      outputType: "html",
+      schema: z.object({}),
+      // @ts-expect-error `note` isn't in the format's `tags`.
+      render: (_data, m) => m.toMarkup(m.document(m.tag("note", {}))),
+    });
+    expect(() => untagged.jsonToString({})).toThrow(
+      "Can't render HTML: Undefined tag: 'note'",
+    );
+  });
+
   it("refuses to render an invalid document", () => {
     expect(() => questions.jsonToString({ items: ["Because."] })).toThrow(
       FormatValidationError,

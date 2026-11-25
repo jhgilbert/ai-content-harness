@@ -1,4 +1,4 @@
-import type { MarkdocBuilder } from "../../content-builder.ts";
+import type { ContentBuilder } from "../../content-builder.ts";
 import type { PresidentDescription } from "./schema.ts";
 
 type Term = PresidentDescription["terms"][number];
@@ -26,7 +26,10 @@ const MONTHS = [
 
 const list = new Intl.ListFormat("en", { type: "conjunction" });
 
-export function render(data: PresidentDescription, m: MarkdocBuilder): string {
+export function render(
+  data: PresidentDescription,
+  m: ContentBuilder<"markdoc">,
+): string {
   const pronoun = PRONOUNS[data.pronoun];
   const born = year(data.born);
   const numbers = list.format(data.numbers.map(ordinal));

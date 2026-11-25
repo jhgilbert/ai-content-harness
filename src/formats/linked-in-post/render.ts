@@ -1,7 +1,10 @@
-import type { MarkdownBuilder } from "../../content-builder.ts";
+import type { ContentBuilder } from "../../content-builder.ts";
 import type { LinkedInPost } from "./schema.ts";
 
-export function render(data: LinkedInPost, m: MarkdownBuilder): string {
+export function render(
+  data: LinkedInPost,
+  m: ContentBuilder<"markdown">,
+): string {
   return m.toMarkup(
     m.document(
       m.paragraph(
